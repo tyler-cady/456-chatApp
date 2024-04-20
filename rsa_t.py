@@ -77,7 +77,7 @@ def encrypt(message, pub_key):
     encrypted = pow(message, e, n)
     return encrypted.to_bytes((encrypted.bit_length() + 7) // 8, byteorder='big')
 
-def decrypt(private_key, encrypted_message):
+def decrypt(encrypted_message, private_key):
     n, d = private_key
     if isinstance(encrypted_message, bytes):
         encrypted_message = int.from_bytes(encrypted_message, byteorder='big')

@@ -1,10 +1,14 @@
 import socket
 import threading
+from rsa_t import *
 
 # Function to handle client connections
 def handle_client(client_socket, client_address):
+    n = client_socket.recv(1024)
+    e = client_socket.recv(1024)
+    pub = (int(n.decode()), int(e.decode()))
+    print("keys recieved")    
     print(f"Connected {client_address}")
-    
     try:
         while True:
             message = client_socket.recv(1024).decode()

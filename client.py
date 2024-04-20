@@ -1,5 +1,6 @@
 import socket
 import threading
+from rsa_t import *
 
 def setup_server(username):
     try:
@@ -11,6 +12,12 @@ def setup_server(username):
         receive_thread = threading.Thread(target=receive_messages, args=(client_socket,))
         receive_thread.start()
 
+        pub, priv = genKeys(4096)
+        n,e = pub
+        print("Sending rsa keys...")
+        client_socket.send(str(n).encode())
+        client_socket.send(str(e).encode())
+        
         # Continuously send messages to server
         while True:
             message = input()
