@@ -79,8 +79,10 @@ def encrypt(message, pub_key):
 
 def decrypt(private_key, encrypted_message):
     n, d = private_key
+    if isinstance(encrypted_message, bytes):
+        encrypted_message = int.from_bytes(encrypted_message, byteorder='big')
     decrypted = pow(encrypted_message, d, n)
-    return decrypted
+    return decrypted.to_bytes((decrypted.bit_length() + 7) // 8, byteorder='big')
 
 def egcd(a, b):
     if a == 0:
@@ -95,3 +97,18 @@ def modinv(a, m):
         raise Exception('Modular inverse does not exist')
     else:
         return x % m
+def main():
+    # Generate public and private keys
+    public_key, private_key = genKeys(4096)
+
+    # Encrypt a message
+    message = b"Hello, world!"
+    encrypted_message = encrypt(message, public_key)
+    print("Encrypted message:", encrypted_message)
+
+    # Decrypt the encrypted message
+    decrypted_message = decrypt(private_key, encrypted_message)
+    print("Decrypted message:", decrypted_message.decode())
+
+if __name__ == "__main__":
+    main()
