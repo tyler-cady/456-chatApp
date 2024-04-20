@@ -1,37 +1,97 @@
-import math
 import random
-import gmpy2
+import math
 
+def is_prime(n, k=40):
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0:
+        return False
+    r, d = 0, n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+    for _ in range(k):
+        a = random.randint(2, n - 2)
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
 
-def genKeys(bit_length):
-    p = genPrime(bit_length)
-    q = genPrime(bit_length)
-    n = p * q
-    phi = (p - 1) * (q - 1)
-    e = getCoprime(phi)
-    d = gmpy2.invert(e, phi)
-    public_key = (n, e)
-    private_key = (n, d)
-    return public_key, private_key
+def miller_rabin(n, k=40):
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0:
+        return False
+    r, d = 0, n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+    for _ in range(k):
+        a = random.randint(2, n - 2)
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
 
 def genPrime(bit_length):
     while True:
         candidate = random.getrandbits(bit_length)
-        if gmpy2.is_prime(candidate):
+        candidate |= (1 << (bit_length - 1)) | 1  # Ensure that the number is odd and has the correct bit length
+        if miller_rabin(candidate):
             return candidate
 
-def getCoprime(n):
-    for e in range(2, n):
-        if gmpy2.gcd(e, n) == 1:
-            return e
+def genKeys(bit_length):
+    p = genPrime(bit_length // 2)
+    while True:
+        q = genPrime(bit_length // 2)
+        if p != q:  # Ensure p and q are distinct
+            break
+    n = p * q
+    phi = (p - 1) * (q - 1)
+    e = 65537
+    d = modinv(e, phi)
+    public_key = (n, e)
+    private_key = (n, d)
+    return public_key, private_key
 
-def encrypt(public_key, message):
-    n, e = public_key
+def encrypt(message, pub_key):
+    (n, e) = pub_key
+    if isinstance(message, bytes):
+        message = int.from_bytes(message, byteorder='big')
     encrypted = pow(message, e, n)
-    return encrypted
+    return encrypted.to_bytes((encrypted.bit_length() + 7) // 8, byteorder='big')
 
 def decrypt(private_key, encrypted_message):
     n, d = private_key
     decrypted = pow(encrypted_message, d, n)
     return decrypted
 
+def egcd(a, b):
+    if a == 0:
+        return (b, 0, 1)
+    else:
+        g, y, x = egcd(b % a, a)
+        return (g, x - (b // a) * y, y)
+
+def modinv(a, m):
+    g, x, y = egcd(a, m)
+    if g != 1:
+        raise Exception('Modular inverse does not exist')
+    else:
+        return x % m
