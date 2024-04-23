@@ -38,7 +38,7 @@ class AES_DES:
         padding_size = message[-1]
         return message[:-padding_size]
     
-    def generate_key(passphrase, salt, key_length=32, iterations=100000):
+    def generate_key(passphrase, salt, key_length, iterations=100000):
         derived_key = hashlib.pbkdf2_hmac('sha256', passphrase.encode(), salt, iterations, dklen=key_length)
         return derived_key
 
@@ -59,6 +59,7 @@ def test_aes_des():
     aes_des_aes = AES_DES(isAES=True)
     keys_aes = [key_aes_128, key_aes_192, key_aes_256]
     for key in keys_aes:
+        print(key)
         encrypted_message_aes = aes_des_aes.encrypt_m(message, key)
         decrypted_message_aes = aes_des_aes.decrypt_m(encrypted_message_aes, key)
         assert decrypted_message_aes.decode() == message, f"AES encryption/decryption failed with key size {len(key)*8} bits"

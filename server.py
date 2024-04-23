@@ -1,21 +1,22 @@
+import os
 import socket
 import threading
 from rsa_t import *
-from Crypto.Random import get_random_bytes
-import os
+from aes_des import *
+
 
 # Function to handle client connections
 def handle_client(client_socket, client_address, key, isAES):
     n = client_socket.recv(1024)
     e = client_socket.recv(1024)
     pub = (int(n.decode()), int(e.decode()))
-    print("Public Key Received")
+    #print("Public Key Received")
     enc_key = encrypt(key, pub)
     client_socket.send(enc_key)
-    print("Private Key Sent")
+    #print("Private Key Sent")
     client_socket.send(encrypt(isAES, pub))
-    print("AES Key Sent")
-    print(f"Connected {client_address}")
+    #print("AES Key Sent")
+    print(f"Tried {client_address}")
 
     try:
         while True:
@@ -25,7 +26,8 @@ def handle_client(client_socket, client_address, key, isAES):
             # Broadcast message to all clients
             broadcast(message, client_socket)
     except Exception as e:
-        print(f"Error: {e}")
+        #print(f"Error: {e}")
+        pass
     finally:
         client_socket.close()
         print("User Disconnected")
@@ -37,7 +39,7 @@ def broadcast(message, sender_socket):
             try:
                 client_socket.send(message)
             except Exception as e:
-                print(f"Error broadcasting message: {e}")
+                #print(f"Error broadcasting message: {e}")
                 # If there's an error broadcasting, assume client disconnected
                 client_socket.close()
                 del clients[client_socket]
@@ -52,15 +54,15 @@ def mssgEnc_INIT():
     else: 
         print("Invalid input.")
         return mssgEnc_INIT()
-    bit_len = input("Enter a bit length for your encryption (1024, 2048, 4096): ")
-    bit_len = int(bit_len)
-    if bit_len == 1024 or bit_len == 2048 or bit_len == 4096:
-        pass
-    else:
+
+    passphrase = input("Enter a passphrase: ")
+    
+    if " " in passphrase or not passphrase.isascii():
         print("Invalid input.")
         return mssgEnc_INIT()
-
-    key = os.urandom(bit_len // 64)  # Generate a random key
+    else:
+        aes_des = AES_DES(isAES)
+        key = AES_DES.generate_key(passphrase, os.urandom(16), key_length=32)  
     return key, isAES
 
 # Main code
@@ -68,6 +70,7 @@ if __name__ == "__main__":
     # Initialize server
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(('0.0.0.0', 5555))
+    
     server.listen(5)
     print("Server is listening...")
 

@@ -2,10 +2,8 @@ import socket
 import threading
 from rsa_t import *
 from aes_des import *
-global rsa_bit_len
-rsa_bit_len = 1024
 
-def setup_server(username):
+def setup_server(username, rsa_bit_len):
     try:
         # Connect to server
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -13,7 +11,7 @@ def setup_server(username):
 
         pub, priv = genKeys(rsa_bit_len)
         n, e = pub
-        print("Sending rsa keys...")
+        #print("Sending rsa keys...")
         client_socket.send(str(n).encode())
         client_socket.send(str(e).encode())
         global key
@@ -38,7 +36,8 @@ def setup_server(username):
                 print("Error: Message cannot be empty.")
 
     except Exception as e:
-        print(f"Error: {e}")
+        #print(f"Error: {e}")
+        pass
 
 def receive_messages(client_socket, aes_des, key):
     try:
@@ -50,13 +49,14 @@ def receive_messages(client_socket, aes_des, key):
             decrypted_message = aes_des.decrypt_m(_message, key)
             print(decrypted_message.decode('utf-8'))
     except Exception as e:
-        print(f"Error: {e}")
+        #print(f"Error: {e}")
+        pass
     finally:
         client_socket.close()
 
 
 # Main code
 if __name__ == "__main__":
+    rsa_bit_len = int(input("Enter RSA bit length (1024, 2048, 4096): "))
     username = input("Enter your username: ")
-    
-    setup_server(username)
+    setup_server(username, rsa_bit_len)
